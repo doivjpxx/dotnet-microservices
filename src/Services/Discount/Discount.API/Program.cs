@@ -1,3 +1,4 @@
+using Discount.API.Extensions;
 using Discount.API.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IDiscountRepository, DiscountRepository>();
 
 var app = builder.Build();
+
+// Migrate seed data
+app.MigrateDatabase<Program>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
