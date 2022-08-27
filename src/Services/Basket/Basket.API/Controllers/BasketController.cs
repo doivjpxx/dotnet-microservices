@@ -1,5 +1,6 @@
 using System.Net;
 using Basket.API.Entities;
+using Basket.API.GrpcServices;
 using Basket.API.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,11 +12,14 @@ public class BasketController : ControllerBase
 {
     private readonly IBasketRepository _repository;
     private readonly ILogger<BasketController> _logger;
+    private readonly DiscountGrpcService _discountGrpcService;
 
-    public BasketController(IBasketRepository repository, ILogger<BasketController> logger)
+    public BasketController(IBasketRepository repository, ILogger<BasketController> logger,
+        DiscountGrpcService discountGrpcService)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _discountGrpcService = discountGrpcService ?? throw new ArgumentNullException(nameof(discountGrpcService));
     }
 
     [HttpGet("{userName}", Name = "GetBasket")]
@@ -24,12 +28,6 @@ public class BasketController : ControllerBase
     public async Task<ActionResult<ShoppingCart>> GetBasket(string userName)
     {
         var basket = await _repository.GetBasket(userName);
-        // if (basket == null)
-        // {
-        //     _logger.LogError($"Basket with user name: {userName} not found");
-        //     return NotFound();
-        // }
-
         return Ok(basket ?? new ShoppingCart(userName));
     }
 
@@ -37,9 +35,17 @@ public class BasketController : ControllerBase
     [ProducesResponseType(typeof(ShoppingCart), (int)HttpStatusCode.OK)]
     public async Task<ActionResult<ShoppingCart>> UpdateBasket([FromBody] ShoppingCart basket)
     {
+        // TODO: communicate with discount.grpc and calculate latest prices of product into shopping cart
+
+        foreach (var item in basket.Items)
+        {
+            var coupon = await _discountGrpcService.GetDiscount(item.ProductName);
+            item.Price -= coupon.Amount;
+        }
+
         return Ok(await _repository.UpdateBasket(basket));
     }
-    
+
     [HttpDelete("{userName}", Name = "DeleteBasket")]
     [ProducesResponseType(typeof(void), (int)HttpStatusCode.OK)]
     public async Task<ActionResult<ShoppingCart>> DeleteBasket(string userName)
