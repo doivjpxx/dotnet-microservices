@@ -1,5 +1,7 @@
+using Ordering.API.Extensions;
 using Ordering.Application;
 using Ordering.Infrastructure;
+using Ordering.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +15,13 @@ builder.Services.AddSwaggerGen();
 // add application layer service
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
+
+builder.Build().MigrateDatabase<OrderContext>((context, provider) =>
+{
+    var logger = provider.GetService<ILogger<OrderContextSeed>>();
+
+    OrderContextSeed.SeedAsync(context, logger).Wait();
+}).Run();
 
 var app = builder.Build();
 
