@@ -16,13 +16,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
-builder.Build().MigrateDatabase<OrderContext>((context, provider) =>
-{
-    var logger = provider.GetService<ILogger<OrderContextSeed>>();
-
-    OrderContextSeed.SeedAsync(context, logger).Wait();
-}).Run();
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -31,6 +24,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// add migration
+app.MigrateDatabase<OrderContext>((context, provider) =>
+{
+    var logger = provider.GetService<ILogger<OrderContextSeed>>();
+
+    OrderContextSeed.SeedAsync(context, logger).Wait();
+});
 
 app.UseHttpsRedirection();
 
