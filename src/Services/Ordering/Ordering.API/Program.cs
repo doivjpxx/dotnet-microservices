@@ -1,4 +1,5 @@
 using Ordering.Application;
+using Ordering.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,7 @@ builder.Services.AddSwaggerGen();
 
 // add application layer service
 builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices(builder.Configuration);
 
 var app = builder.Build();
 
