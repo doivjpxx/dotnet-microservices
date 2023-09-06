@@ -9,7 +9,7 @@ public static class HttpClientExtensions
         if (!response.IsSuccessStatusCode)
             throw new ApplicationException($"Something went wrong calling the API: {response.ReasonPhrase}");
 
-        var dataAsString = await response.Content.ReadAsStringAsync();
+        var dataAsString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
         return JsonConvert.DeserializeObject<T>(dataAsString);
     }
